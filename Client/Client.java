@@ -9,36 +9,39 @@ import java.net.Socket;
 import java.util.Scanner;
 
 public class Client {
-	 public static void main(String args[]){
+	 private static final String HOST = "localhost";
+	private static final int PORT = 1234;
+
+	public static void main(String args[]){
+	     Scanner keyboardIn = new Scanner(System.in);
+	     String nickname = null;
 	     Socket connection = null;
 	     Scanner socketIn = null;
 	     PrintWriter socketOut = null;
 	     String response = null;
-	     Scanner keyboardIn = new Scanner(System.in);
-	     int port = 1234;
-	     String host = "localhost";
 
 	     try{
 	       System.out.println("Connecting with server");
-	       try{
-	         connection = new Socket(host, port);
-	       }
-	       catch(ConnectException e){
-	         System.err.println(" Can not connect with the server!");
-	         return;
-	       }
+	         try{
+	           connection = new Socket(HOST, PORT);
+	         }
+	           catch(ConnectException e){
+	           System.err.println(" Can not connect with the server!");
+	           return;
+	         }
 	       System.out.println("Connected with the server successfully!");
+	       System.out.println(" Please enter your nickname!" );
+	       nickname = keyboardIn.nextLine();
 
 	       socketIn = new Scanner(new BufferedReader(new InputStreamReader(connection.getInputStream())));
 	       socketOut = new PrintWriter(connection.getOutputStream(), true);
 	       do{	    	   
 		     String answer = socketIn.nextLine();
-		     System.out.println("Server : " + answer);
+		     System.out.println(answer);
 		         
 	         socketOut.flush();
-	         System.out.print("Write message to server: ");
 	         response = keyboardIn.nextLine();
-	         socketOut.println(response.toLowerCase());
+	         socketOut.println(nickname + ": " + response.toLowerCase());
 	       }
 	       while (!response.equalsIgnoreCase("exit"));
 	       System.out.println(" Closing the connection...");

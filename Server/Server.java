@@ -13,34 +13,37 @@ public class Server {
 
 	public static void main(String args[]) {
 		  Scanner keyboardIn = new Scanner(System.in);
-		    ServerSocket serverSocket = null;
-		    Socket connection = null;
-		    Scanner socketIn = null;
-	        String answer = null;
-	        String name = null;
-	        String response = null;
-		    PrintWriter socketOut = null;
-		    int port = PORT;
+		  ServerSocket serverSocket = null;
+		  String nickname = null;
+		  Socket connection = null;
+		  Scanner socketIn = null;
+	      String answer = null;
+	      String name = null;
+	      String response = null;
+		  PrintWriter socketOut = null;
 
 		    while(true){
 		      try {
-		        serverSocket = new ServerSocket(port);
+		        serverSocket = new ServerSocket(PORT);
 		        System.out.println(" Waiting for someone to connect...");
 		        connection = serverSocket.accept();
 		        System.out.println(" Connected with:" + connection.getInetAddress().getHostName());
 
+		        System.out.println(" Please enter your nickname!" );
+			    nickname = keyboardIn.nextLine();
+			    
 		        socketOut = new PrintWriter(connection.getOutputStream(), true);
 		        socketIn = new Scanner(new BufferedReader(new InputStreamReader(connection.getInputStream())));
 
 		        name =  connection.getInetAddress().getHostName();
-		        do{	        	
-		          System.out.print("write message to " + name + ": ");
+		        System.out.println("start chating");
+		        do{	        			        
 				  response = keyboardIn.nextLine();
-				  socketOut.println(response.toLowerCase());
+				  socketOut.println(nickname + ": " +response.toLowerCase());
 				  
 		          socketOut.flush();
 		          answer = socketIn.nextLine();
-		          System.out.println( name + " say: " + answer);
+		          System.out.println(answer);
 		        }
 		        while(!response.equalsIgnoreCase("exit"));
 		        System.out.println("Closing the connection with " + name);
