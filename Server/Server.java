@@ -1,34 +1,38 @@
 package Server;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
+import java.net.InetAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Scanner;
+
+import Message.Message;
 
 public class Server {
 	private static final int PORT = 1234;
 	private static ServerSocket serverSocket = null;
 	private static String nickname = null;
 	private static Socket connection = null;
-	private static Scanner socketIn = null;
-	private static String answer = null;
+	private static ObjectInputStream socketIn = null;
+	private static ObjectOutputStream socketOut = null;
 	private static String computerName = null;
 	private static String response = null;
-	private static PrintWriter socketOut = null;
+
 
 	public static void main(String args[]) {
 		  Scanner keyboardIn = new Scanner(System.in);
 		  
 		    while(true){
 		      try {
-		        WaitinForConnection();
-		        setingNickname(keyboardIn);		    
+		        WaitingForConnection();
+		        setNickname(keyboardIn);		    
 		        setStreams();
 
-		        socketOut.println(nickname + ": " + " hello ");
+		        socketOut.writeObject(new Message(nickname, "client", "hello", LocalDate.now(), LocalTime.now()));
 		        do{	  
 		          receiveMessage();
 		          sendMessage(keyboardIn);				  	        
@@ -55,32 +59,41 @@ public class Server {
 	}
 
 	private static void receiveMessage() {
-		socketOut.flush();
-		answer = socketIn.nextLine();
-	    System.out.println(answer);
+		Message answer = null;
+		try {
+			answer = (Message) socketIn.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+		}
+		System.out.println(answer.getFrom() + ":  " + answer.getContent());
 	}
 
 	private static void sendMessage(Scanner keyboardIn) {
-		System.out.print("Me: ");
-	    response = keyboardIn.nextLine();
-		socketOut.println(nickname + ": " +response.toLowerCase());
+		try {
+			socketOut.flush();
+			System.out.print("Me: ");
+			response = keyboardIn.nextLine();
+			socketOut.writeObject(new Message(nickname, "client", response.toLowerCase(), LocalDate.now(), LocalTime.now()));
+		} catch (IOException e) {
+			e.printStackTrace();
+	    }
 	}
 
 	private static void setStreams() throws IOException {
-		socketOut = new PrintWriter(connection.getOutputStream(), true);
-		socketIn = new Scanner(new BufferedReader(new InputStreamReader(connection.getInputStream())));
+	    socketOut = new ObjectOutputStream(connection.getOutputStream());
+	    socketIn =  new ObjectInputStream(connection.getInputStream());	
 	}
 
-	private static void setingNickname(Scanner keyboardIn) {
+	private static void setNickname(Scanner keyboardIn) {
 		System.out.println(" Please enter your nickname!" );
 		nickname = keyboardIn.nextLine();
 	}
 
-	private static void WaitinForConnection() throws IOException {
+	private static void WaitingForConnection() throws IOException {
 		serverSocket = new ServerSocket(PORT);
 		System.out.println(" Waiting for someone to connect...");
 		connection = serverSocket.accept();
-		computerName =  connection.getInetAddress().getHostName();
+		computerName = InetAddress.getLocalHost().getHostName();
 		System.out.println(" Connected with:" + computerName);
 	}
 }

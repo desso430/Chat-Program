@@ -1,9 +1,15 @@
 package Message;
 
+import java.io.Serializable;
 import java.time.LocalDate;
 import java.time.LocalTime;
 
-public class Message {
+public class Message implements Serializable {
+
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 5169217555757945956L;
 	private String from;
 	private String to;
 	private String content;

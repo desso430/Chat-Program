@@ -1,22 +1,25 @@
 package Client;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
-import java.io.PrintWriter;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.Scanner;
+
+import Message.Message;
 
 public class Client {
 	private static final String HOST = "localhost";
 	private static final int PORT = 1234;  
 	private static Scanner keyboardIn = new Scanner(System.in);
+	private static ObjectInputStream socketIn = null;
+	private static ObjectOutputStream socketOut = null;
 	private static String nickname = null;
 	private static Socket connection = null;
-	private static Scanner socketIn = null;
-	private static PrintWriter socketOut = null;
 	private static String response = null;
 
 	public static void main(String args[]){
@@ -60,15 +63,24 @@ public class Client {
 	}
 
 	private static void sendMessage() {
-		socketOut.flush();
-		System.out.print("Me: ");
-		response = keyboardIn.nextLine();
-		socketOut.println(nickname + ": " + response.toLowerCase());
+		try {
+			socketOut.flush();
+			System.out.print("Me: ");
+			response = keyboardIn.nextLine();
+			socketOut.writeObject(new Message(nickname, "server", response.toLowerCase(), LocalDate.now(), LocalTime.now()));
+		} catch (IOException e) {
+			e.printStackTrace();
+		}		
 	}
 
 	private static void receiveMessage() {
-		String answer = socketIn.nextLine();
-		System.out.println(answer);
+		Message answer = null;
+		try {
+			answer = (Message) socketIn.readObject();
+		} catch (ClassNotFoundException | IOException e) {
+			e.printStackTrace();
+		}
+	  System.out.println(answer.getFrom() + ":  " + answer.getContent());
 	}
 
 	private static void setNickname() {
@@ -77,7 +89,7 @@ public class Client {
 	}
 
 	private static void setTheStreams() throws IOException {
-		socketIn = new Scanner(new BufferedReader(new InputStreamReader(connection.getInputStream())));
-	    socketOut = new PrintWriter(connection.getOutputStream(), true);
+	    socketOut = new ObjectOutputStream(connection.getOutputStream());
+	    socketIn =  new ObjectInputStream(connection.getInputStream());	
 	}
 }
