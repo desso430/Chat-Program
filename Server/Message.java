@@ -1,4 +1,4 @@
-package Message;
+package Server;
 
 import java.io.Serializable;
 import java.time.LocalDate;

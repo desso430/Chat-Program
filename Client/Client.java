@@ -10,8 +10,6 @@ import java.time.LocalDate;
 import java.time.LocalTime;
 import java.util.Scanner;
 
-import Message.Message;
-
 public class Client {
 	private static final String HOST = "localhost";
 	private static final int PORT = 1234;  
