@@ -1,4 +1,5 @@
 package Client;
+import Message.Message;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
