@@ -1,4 +1,5 @@
 package Server;
+
 import Message.Message;
 
 import java.io.IOException;
@@ -15,41 +16,37 @@ import java.util.Scanner;
 public class Server {
 	private static final int PORT = 1234;
 	private static ServerSocket serverSocket = null;
-	private static String nickname = null;
 	private static Socket connection = null;
 	private static ObjectInputStream socketIn = null;
 	private static ObjectOutputStream socketOut = null;
 	private static String computerName = null;
-	private static String response = null;
 
-
-	public static void main(String args[]) {
-		  Scanner keyboardIn = new Scanner(System.in);
-		  
-		    while(true){
-		      try {
-		        WaitingForConnection();
-		        setNickname(keyboardIn);		    
-		        setStreams();
-
-		        socketOut.writeObject(new Message(nickname, "client", "hello", LocalDate.now(), LocalTime.now()));
-		        do{	  
-		          receiveMessage();
-		          sendMessage(keyboardIn);				  	        
-		        } while(!response.equalsIgnoreCase("exit"));
-		        System.out.println("Closing the connection with " + computerName);
-		      } catch(IOException e) {
-		        e.printStackTrace();
-		      }
-		      finally{
-		        try{
-		          closeTheSockets();
-		        } catch(IOException e){
-		          System.err.println(" Can not close the socket! ");
-		        }
-		     }
-		 }
-	 }
+	public static void main(String args[])  { 
+		try {
+			WaitingForConnection();
+			setStreams();
+			
+			ServerChatSwing.main(args);
+			socketOut.writeObject(new Message("deso", "client", "hello"));
+					      	
+		    while(true) {
+		       receiveMessage();
+		    }
+		 } catch (IOException e) {
+			e.printStackTrace();
+		 }    	
+		finally {
+		    try{
+		       closeTheSockets();
+		    } catch(IOException e){
+		      System.err.println(" Can not close the socket! ");
+		    }
+	     }
+     }
+	
+	static ObjectOutputStream getOutput() {
+		return socketOut;
+	}
 
 	private static void closeTheSockets() throws IOException {
 		if (socketIn!=null) socketIn.close();
@@ -65,28 +62,12 @@ public class Server {
 		} catch (ClassNotFoundException | IOException e) {
 			e.printStackTrace();
 		}
-		System.out.println(answer.getFrom() + ":  " + answer.getContent());
-	}
-
-	private static void sendMessage(Scanner keyboardIn) {
-		try {
-			socketOut.flush();
-			System.out.print("Me: ");
-			response = keyboardIn.nextLine();
-			socketOut.writeObject(new Message(nickname, "client", response.toLowerCase(), LocalDate.now(), LocalTime.now()));
-		} catch (IOException e) {
-			e.printStackTrace();
-	    }
+		ServerChatSwing.writeMessageInChatArea(answer);
 	}
 
 	private static void setStreams() throws IOException {
 	    socketOut = new ObjectOutputStream(connection.getOutputStream());
 	    socketIn =  new ObjectInputStream(connection.getInputStream());	
-	}
-
-	private static void setNickname(Scanner keyboardIn) {
-		System.out.println(" Please enter your nickname!" );
-		nickname = keyboardIn.nextLine();
 	}
 
 	private static void WaitingForConnection() throws IOException {

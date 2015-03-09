@@ -7,34 +7,29 @@ import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
 import java.net.UnknownHostException;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import java.util.Scanner;
 
 public class Client {
-	private static final String HOST = "localhost";
+	private static final String HOST = "192.168.1.105";
 	private static final int PORT = 1234;  
-	private static Scanner keyboardIn = new Scanner(System.in);
 	private static ObjectInputStream socketIn = null;
 	private static ObjectOutputStream socketOut = null;
-	private static String nickname = null;
 	private static Socket connection = null;
-	private static String response = null;
 
 	public static void main(String args[]){
-		
-	     try{
-	       connectWithServer();         
-	       setNickname();
-	       setTheStreams();
-	       
-	       do{	    	   
-		     receiveMessage();
-		     sendMessage();
-	       } while (!response.equalsIgnoreCase("exit"));    
-	     } catch(IOException e) {
-	       e.printStackTrace();
-	     }
+			             
+	       try {
+	    	connectWithServer();
+			setTheStreams();
+			
+		    ClientChatSwing.main(args);
+		       
+		    do{	    	   
+			  receiveMessage();
+		    } while (true);   
+		       
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	     finally{
 	       try{
 	         closeTheSockets();
@@ -44,6 +39,10 @@ public class Client {
 	     }
 	}
 
+	static ObjectOutputStream getOutput() {
+		return socketOut;
+	}
+	
 	private static void connectWithServer() throws UnknownHostException, IOException {
 		System.out.println("Connecting with server");
 	     try{
@@ -61,30 +60,14 @@ public class Client {
 		if(connection!=null) connection.close();
 	}
 
-	private static void sendMessage() {
-		try {
-			socketOut.flush();
-			System.out.print("Me: ");
-			response = keyboardIn.nextLine();
-			socketOut.writeObject(new Message(nickname, "server", response.toLowerCase(), LocalDate.now(), LocalTime.now()));
-		} catch (IOException e) {
-			e.printStackTrace();
-		}		
-	}
-
 	private static void receiveMessage() {
 		Message answer = null;
 		try {
-			answer = (Message) socketIn.readObject();
+			answer = (Message) socketIn.readObject();		
 		} catch (ClassNotFoundException | IOException e) {
 			e.printStackTrace();
-		}
-	  System.out.println(answer.getFrom() + ":  " + answer.getContent());
-	}
-
-	private static void setNickname() {
-		System.out.println(" Please enter your nickname!" );
-	    nickname = keyboardIn.nextLine();
+		}	
+		ClientChatSwing.writeMessageInChatArea(answer);
 	}
 
 	private static void setTheStreams() throws IOException {

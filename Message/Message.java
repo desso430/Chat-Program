@@ -13,15 +13,15 @@ public class Message implements Serializable {
 	private String from;
 	private String to;
 	private String content;
-	private LocalDate data;
-	private LocalTime time;
+	private LocalDate localDate;
+	private LocalTime localTime;
 
-	public Message(String from, String to, String content, LocalDate data, LocalTime time) {
+	public Message(String from, String to, String content) {
 		this.from = from;
 		this.to = to;
 		this.content = content;
-		this.data = data;
-		this.time = time;
+		this.localDate = LocalDate.now();
+		this.localTime = LocalTime.now();
 	}
 
 	public String getFrom() {
@@ -34,15 +34,17 @@ public class Message implements Serializable {
 		return content;
 	}
 	public LocalDate getData() {
-		return data;
+		return localDate;
 	}
 	public LocalTime getTime() {
-		return time;
+		return localTime;
 	}
 	
 	@Override
 	public String toString() {
-		return "Message [from=" + from + ", to=" + to + ", content=" + content
-				+ ", data=" + data + ", time=" + time + "]";
+		String date = localDate.getDayOfMonth() + " " +  localDate.getMonth() + " ";
+		String time = localTime.getHour() + ":" + localTime.getMinute();
+		
+	  return "(" + date + time + ") " + from + " : " + content;
 	}
 }

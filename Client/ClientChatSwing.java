@@ -1,13 +1,16 @@
 package Client;
-import Message.Message;
 
+import Message.Message;
 import java.awt.EventQueue;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.time.LocalDate;
-import java.time.LocalTime;
-import javax.swing.*;
+import java.awt.event.KeyEvent;
+import java.awt.event.KeyListener;
+import java.io.IOException;
+import java.io.ObjectOutputStream;
 import javax.swing.border.EmptyBorder;
+import javax.swing.*;
+
 
 public class ClientChatSwing extends JFrame {
 
@@ -17,12 +20,12 @@ public class ClientChatSwing extends JFrame {
 	 */
 	private static final long serialVersionUID = 5414027196690424525L;
 	private JPanel contentPane = new JPanel();
-	private static JTextArea chatArea;
+	private static JTextArea chatArea = new JTextArea();
 	private JScrollPane chatAreaScrollPane;
 	private JTextArea inputMessageArea;
 	private JScrollPane inputMessageAreaScrollPane;
 	private JButton sendButton;
-	private static String nickname = "user_1";
+	private static String nickname = "Boqn";	
 
 	/**
 	 * Launch the application.
@@ -61,7 +64,6 @@ public class ClientChatSwing extends JFrame {
 	}
 
 	private void setChatArea() {
-		chatArea = new JTextArea();
 		chatArea.setEditable(false);
 		chatAreaScrollPane = new JScrollPane();
 		chatAreaScrollPane.setBounds(10, 11, 483, 276);
@@ -76,6 +78,22 @@ public class ClientChatSwing extends JFrame {
 		inputMessageAreaScrollPane.setBounds(10, 326, 374, 37);
 		contentPane.add(inputMessageAreaScrollPane);
 		inputMessageAreaScrollPane.setViewportView(inputMessageArea);
+		
+		inputMessageArea.addKeyListener( new KeyListener() {
+
+			@Override
+			public void keyPressed(KeyEvent e) { }
+
+			@Override
+			public void keyTyped(KeyEvent e) { }	
+			
+			@Override
+			public void keyReleased(KeyEvent e) {
+				 if (e.getKeyCode() == KeyEvent.VK_ENTER) {
+					 sendMessage(Client.getOutput());
+				 }	
+			}
+		});
 	}
 
 	private void setSendButton() {
@@ -89,32 +107,37 @@ public class ClientChatSwing extends JFrame {
 					
 			@Override
 		    public void actionPerformed(ActionEvent e) {
-				if(!getMessage().equals("")) {
-					writeInChatArea(getTimeStamp() + nickname + " : " + getMessage() + "\n");
-					inputMessageArea.setText("");
-				}
+				sendMessage(Client.getOutput()); 
 			}
 		});
 	}
 	
-	private static void writeInChatArea(String message) {
-		chatArea.append(message);
+	static void writeMessageInChatArea(Message message) {
+		if(message != null) {	
+		  if(message.getContent() != null )
+			chatArea.append("\n " + message.toString());
+		}
 	}
 	
-	private static void writeMessageInChatArea(Message message) {
-		String data = message.getData().getDayOfMonth() + " " +  message.getData().getMonth() + " ";
-		String time = message.getTime().getHour() + ":" + message.getTime().getMinute() + " ";
-		writeInChatArea(data + " " + time + message.getFrom() + " : " + message.getContent());
-	}
-	
-	private String getTimeStamp() {
-		String data = LocalDate.now().getDayOfMonth() + " " +  LocalDate.now().getMonth() + " ";
-		String time = LocalTime.now().getHour() + ":" + LocalTime.now().getMinute() + " ";
-		
-	  return "(" + data + " " + time + ") ";	
-	}
-	
-	public String getMessage() {
+	private String getMessage() {
 		return inputMessageArea.getText();
+	}
+	
+	private void sendMessage(ObjectOutputStream socketOut) {
+		if(!getMessage().equals("")) {
+			Message message = new Message(nickname, "server", getMessage());
+			send(message, socketOut);
+			writeMessageInChatArea(message);
+			inputMessageArea.setText("");
+		} 
+	}
+
+	private void send(Message message, ObjectOutputStream socketOut) {		
+		try {
+			socketOut.flush();	
+			socketOut.writeObject(message);
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
 	}
 }
