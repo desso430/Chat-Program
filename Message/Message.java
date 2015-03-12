@@ -15,6 +15,7 @@ public class Message implements Serializable {
 	private String content;
 	private LocalDate localDate;
 	private LocalTime localTime;
+	private boolean isSeen;
 
 	public Message(String from, String to, String content) {
 		this.from = from;
@@ -22,6 +23,7 @@ public class Message implements Serializable {
 		this.content = content;
 		this.localDate = LocalDate.now();
 		this.localTime = LocalTime.now();
+		isSeen = false;
 	}
 
 	public String getFrom() {
@@ -39,7 +41,10 @@ public class Message implements Serializable {
 	public LocalTime getTime() {
 		return localTime;
 	}
-	
+	public boolean isSeen() {
+		return isSeen;
+	}
+
 	@Override
 	public String toString() {
 		String date = localDate.getDayOfMonth() + " " +  localDate.getMonth() + " ";

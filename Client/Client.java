@@ -1,77 +1,63 @@
 package Client;
 import Message.Message;
+import Server.SaveChatHistory;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.net.ConnectException;
 import java.net.Socket;
-import java.net.UnknownHostException;
 
 public class Client {
-	private static final String HOST = "192.168.1.105";
+	private static final String HOST = "localhost";
 	private static final int PORT = 1234;  
-	private static ObjectInputStream socketIn = null;
-	private static ObjectOutputStream socketOut = null;
-	private static Socket connection = null;
 
 	public static void main(String args[]){
-			             
-	       try {
-	    	connectWithServer();
-			setTheStreams();
-			
-		    ClientChatSwing.main(args);
-		       
-		    do{	    	   
-			  receiveMessage();
-		    } while (true);   
-		       
+		 ObjectInputStream socketIn = null;
+		 ObjectOutputStream socketOut = null;
+		 Socket connection = null;
+         
+	       try {	   
+	    	  System.out.println(" Connecting with server... ");
+	   	       try{
+	   	         connection = new Socket(HOST, PORT);
+	   	        } catch(ConnectException e){
+	   	         ClientChatSwing.printError(" Can not connect with the server! " + e.getMessage());
+	   	         return;
+	   	        }
+	    	
+	    	// set the streams
+	    	socketOut = new ObjectOutputStream(connection.getOutputStream());
+	  	    socketIn =  new ObjectInputStream(connection.getInputStream());	
+  	    
+	  	  // start the frame
+	         ClientChatSwing.main(socketOut);
+	         
+		    while(true) {   		
+		    	try {
+					receiveMessage(socketIn);
+				} catch (ClassNotFoundException e) {
+					 ClientChatSwing.printProgramMessage(e.getMessage());
+//					 new SaveChatHistory(ClientChatSwing.getChatHistory()).saveHistory();
+					 break;
+				}
+		    }  		       
 		} catch (IOException e) {
-			e.printStackTrace();
+			ClientChatSwing.printError(e.getMessage());
 		}
 	     finally{
 	       try{
-	         closeTheSockets();
+	   		if(socketIn!=null) socketIn.close();
+	   	    if(socketOut!=null) socketOut.close();
+	   		if(connection!=null) connection.close();
 	       } catch(IOException e){
-	         System.err.println(" Can not close the connection");
+	    	  ClientChatSwing.printError(" Can not close the connection! \n" + e.getMessage());
 	       }
 	     }
 	}
 
-	static ObjectOutputStream getOutput() {
-		return socketOut;
-	}
-	
-	private static void connectWithServer() throws UnknownHostException, IOException {
-		System.out.println("Connecting with server");
-	     try{
-	         connection = new Socket(HOST, PORT);
-	       } catch(ConnectException e){
-	         System.err.println(" Can not connect with the server!");
-	         return;
-	       }
-	}
-
-	private static void closeTheSockets() throws IOException {
-	    System.out.println(" Closing the connection...");
-		if(socketIn!=null) socketIn.close();
-	    if(socketOut!=null) socketOut.close();
-		if(connection!=null) connection.close();
-	}
-
-	private static void receiveMessage() {
-		Message answer = null;
-		try {
-			answer = (Message) socketIn.readObject();		
-		} catch (ClassNotFoundException | IOException e) {
-			e.printStackTrace();
-		}	
+	private static void receiveMessage(ObjectInputStream socketIn) throws ClassNotFoundException, IOException {
+		Message answer = (Message) socketIn.readObject();
 		ClientChatSwing.writeMessageInChatArea(answer);
-	}
-
-	private static void setTheStreams() throws IOException {
-	    socketOut = new ObjectOutputStream(connection.getOutputStream());
-	    socketIn =  new ObjectInputStream(connection.getInputStream());	
 	}
 }
