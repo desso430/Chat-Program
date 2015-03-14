@@ -7,7 +7,7 @@ import java.util.Queue;
 
 import Message.Message;
 
-public class SaveChatHistory {
+public class SaveChatHistory implements Runnable {
 	private static final String dash = " - ";
 	private Queue<Message> chatHistory;
 
@@ -15,7 +15,12 @@ public class SaveChatHistory {
 		this.chatHistory = chat;
 	}
 	
-	void saveHistory() {
+	@Override
+	public void run() {
+	   saveHistory();	
+	}
+	
+	private void saveHistory() {
 		try {
 			String between = chatHistory.peek().getFrom() + dash + chatHistory.peek().getTo();
 			File fileHistory = new File("ChatHistory" + File.separator + between + ".txt");
